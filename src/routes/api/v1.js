@@ -24,6 +24,57 @@ router.get('/api/lessons/:id', (req, res) => {
     else res.send(lesson)
 })
 
+router.post('/api/lessons', (req, res) => {
+    const { error } = validateLesson(req.body.name)
+    if (error) {
+        badRequest(res, error)
+    }
+
+    const lesson = {
+        id: lessons.length + 1,
+        name: req.body.name
+    }
+
+    lessons.push(lesson)
+    res.send(lesson)
+
+})
+
+router.put('/api/lessons/:id', (req, res) => {
+    const lesson = findLesson(req.params.id)
+    if (!lesson) notFound(res)
+    else {
+        const { error } = validateLesson(req.body.name)
+        if (error) {
+            badRequest(res, error)
+        }
+
+        lesson.name = req.body.name;
+        res.send(lesson)
+    }
+
+})
+
+router.delete('/api/lessons/:id', (req, res) => {
+    const lesson = findLesson(req.params.id)
+    if (!lesson) notFound(res)
+    else {
+        const index = lessons.indexOf(lesson)
+        lessons.splice(index, 1)
+    }
+    res.send(lesson)
+
+})
+
+const validateLesson = (lessonName) => {
+    const schema = Joi.object({
+        name: Joi.string().min(5).required()
+    })
+    return schema.validate({ // error , value
+        name: lessonName
+    })
+}
+
 const badRequest = (res, err) => {
     return res.status(400).send(`This is a bad request\nReason : ${err.details[0].message}`)
 }
